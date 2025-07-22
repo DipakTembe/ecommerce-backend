@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true
+  },
   price: {
     type: Number,
     required: true
@@ -14,13 +18,11 @@ const productSchema = new mongoose.Schema({
     required: false,
     validate: {
       validator: function(v) {
-        // Validate if URL is a valid URL (adjust regex as needed)
         return /^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/.test(v);
       },
       message: 'Invalid URL format for image URL.'
     },
-   default: 'https://ecommerce-backend-1-gnq2.onrender.com/images/default-image.jpg'
-
+    default: 'https://ecommerce-backend-1-gnq2.onrender.com/images/default-image.jpg'
   },
   rating: {
     type: Number,
@@ -30,17 +32,15 @@ const productSchema = new mongoose.Schema({
   },
   brand: {
     type: String,
-    required: false,  // Optional field
-    default: 'Unknown'  // Default value for brand if not provided
+    default: 'Unknown'
   },
   category: {
     type: String,
-    required: false,  // Optional field
-    default: 'Uncategorized'  // Default category if not provided
+    default: 'Uncategorized'
   },
   gender: {
     type: String,
-    enum: ['Mens', 'Womens', 'Kids', 'Home'],  // Limit to these options
+    enum: ['Mens', 'Womens', 'Kids', 'Home'],
     required: true
   },
   type: {
@@ -49,11 +49,10 @@ const productSchema = new mongoose.Schema({
   },
   stock: {
     type: Number,
-    required: true, // Ensures stock is mandatory
-    min: 0, // Ensures stock cannot be negative
-    default: 0 // Default stock value
+    required: true,
+    min: 0,
+    default: 0
   }
 }, { timestamps: true });
 
-const Product = mongoose.model('Product', productSchema);
-module.exports = Product;
+module.exports = mongoose.model('Product', productSchema);

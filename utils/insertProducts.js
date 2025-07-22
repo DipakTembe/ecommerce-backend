@@ -1,16 +1,21 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
-const Product = require('../models/Product'); // Assuming your model is in models/Product.js
+const Product = require('../models/Product');
 
-// Fetch the MongoDB URI from the environment
 const mongoURI = process.env.MONGO_URI;
+const backendBaseUrl = (process.env.BACKEND_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
 
 if (!mongoURI) {
-  console.error('MongoDB URI is not defined. Please check your .env file.');
-  process.exit(1); // Exit the script if the URI is not set
+  console.error('❌ MongoDB URI is not defined in .env');
+  process.exit(1);
 }
 
-const backendBaseUrl = process.env.BACKEND_BASE_URL || 'http://localhost:5001';
+if (!backendBaseUrl.startsWith('http')) {
+  console.error('❌ BACKEND_BASE_URL is invalid:', backendBaseUrl);
+  process.exit(1);
+}
+
+console.log('✅ Using BACKEND_BASE_URL:', backendBaseUrl);
 
 
 const productData = [
@@ -64,49 +69,66 @@ const productData = [
 ];
 
 
-// Utility function to ensure stock is a number
+// Normalize stock value if provided as string
 function normalizeStock(stock) {
   if (typeof stock === 'string') {
     switch (stock.toLowerCase()) {
-      case 'in stock':
-        return 1; // Treat "In Stock" as 1 (available)
-      case 'out of stock':
-        return 0; // Treat "Out of Stock" as 0 (not available)
-      default:
-        return 0; // Default to 0 if the stock is undefined or has another string
+      case 'in stock': return 1;
+      case 'out of stock': return 0;
+      default: return 0;
     }
   }
-  return Number(stock); // If it's already a number, return it
+  return Number(stock);
 }
 
-mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
+// Validate URL (simple check)
+function isValidURL(url) {
+  try {
+    new URL(url);
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+mongoose.connect(mongoURI)
   .then(async () => {
-    console.log('MongoDB connected.');
+    console.log('✅ MongoDB connected.');
 
-    // Clear existing products
-    const deletedProducts = await Product.deleteMany({});
-    console.log(`${deletedProducts.deletedCount} existing products removed.`);
+    const deleted = await Product.deleteMany({});
+    console.log(`🗑️ ${deleted.deletedCount} existing products removed.`);
 
-    // Prepare new product data with updated image URLs and normalized stock
-    // Prepare new product data with updated image URLs and normalized stock
-    const updatedProductData = productData.map(item => ({
-      ...item,
-      stock: normalizeStock(item.stock), // Normalize stock to ensure it's a number
-      imageUrl: `${backendBaseUrl}${item.image}` // Use dynamic backend URL from env
-    }));
+    const updatedProducts = productData.map(item => {
+      const imageUrl = `${backendBaseUrl}${item.image}`;
+      if (!isValidURL(imageUrl)) {
+        console.warn(`⚠️ Skipping invalid image URL for product: ${item.type} => ${imageUrl}`);
+        return null;
+      }
+      return {
+        ...item,
+        name: item.type,
+        stock: normalizeStock(item.stock),
+        imageUrl
+      };
+    }).filter(Boolean); // Remove any invalid ones
 
-    // Insert updated product data
-    const insertedProducts = await Product.insertMany(updatedProductData);
-    console.log(`${insertedProducts.length} new products inserted successfully.`);
+    if (updatedProducts.length === 0) {
+      console.error('❌ No valid products to insert.');
+      mongoose.connection.close();
+      return;
+    }
 
-    // Close the connection
-    mongoose.connection.close();
-    console.log('Database connection closed.');
+    try {
+      const inserted = await Product.insertMany(updatedProducts);
+      console.log(`✅ ${inserted.length} products inserted successfully.`);
+    } catch (err) {
+      console.error('❌ Error inserting products:', err);
+    } finally {
+      mongoose.connection.close();
+      console.log('🔒 Database connection closed.');
+    }
   })
-  .catch(error => {
-    console.error('Error during database operation:', error);
-
-    // Ensure database connection is closed on error
+  .catch(err => {
+    console.error('❌ Database connection failed:', err);
     mongoose.connection.close();
-    process.exit(1);
   });
