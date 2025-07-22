@@ -10,7 +10,8 @@ if (!mongoURI) {
   process.exit(1); // Exit the script if the URI is not set
 }
 
-const backendURL = 'https://ecommerce-backend-1-gnq2.onrender.com';
+const backendBaseUrl = process.env.BACKEND_BASE_URL || 'http://localhost:5001';
+
 
 const productData = [
   { image: "/images/casual-t-shirt.avif", brand: "Nike", type: "Casual T-Shirt", price: 2999, stock: 10, category: "Topwear", rating: 4.2, buyers: 6400, gender: "Mens", description: "A comfortable and stylish casual t-shirt." },
@@ -87,10 +88,11 @@ mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
     console.log(`${deletedProducts.deletedCount} existing products removed.`);
 
     // Prepare new product data with updated image URLs and normalized stock
+    // Prepare new product data with updated image URLs and normalized stock
     const updatedProductData = productData.map(item => ({
       ...item,
       stock: normalizeStock(item.stock), // Normalize stock to ensure it's a number
-      imageUrl: `http://localhost:5001${item.image}` // Generate absolute image URL
+      imageUrl: `${backendBaseUrl}${item.image}` // Use dynamic backend URL from env
     }));
 
     // Insert updated product data
