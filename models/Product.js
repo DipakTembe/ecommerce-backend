@@ -19,7 +19,8 @@ const productSchema = new mongoose.Schema({
       },
       message: 'Invalid URL format for image URL.'
     },
-    default: 'http://localhost:5001/images/default-image.jpg' // Default image URL if not provided
+   default: 'https://ecommerce-backend-1-gnq2.onrender.com/images/default-image.jpg'
+
   },
   rating: {
     type: Number,

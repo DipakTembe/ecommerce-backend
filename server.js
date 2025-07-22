@@ -44,6 +44,7 @@ app.use('/images', express.static(path.join(__dirname, 'images'))); // Serve ima
 // CORS Configuration
 const allowedOrigins = [
   process.env.FRONTEND_URL,   // Your production frontend URL
+  'https://dipakecommercewebsite.netlify.app',
   'http://localhost:3000',    // Your local frontend (React app running on port 3000)
   'http://localhost:5001',    // Backend for image path
   'http://localhost:5001/images' // Ensure this path is allowed for image access

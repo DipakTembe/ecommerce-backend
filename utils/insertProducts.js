@@ -10,6 +10,8 @@ if (!mongoURI) {
   process.exit(1); // Exit the script if the URI is not set
 }
 
+const backendURL = 'https://ecommerce-backend-1-gnq2.onrender.com';
+
 const productData = [
   { image: "/images/casual-t-shirt.avif", brand: "Nike", type: "Casual T-Shirt", price: 2999, stock: 10, category: "Topwear", rating: 4.2, buyers: 6400, gender: "Mens", description: "A comfortable and stylish casual t-shirt." },
   { image: "/images/jeans.jpg", brand: "Levi's", type: "Jeans", price: 4999, stock: 15, category: "Bottomwear", rating: 4.0, buyers: 2200, gender: "Mens", description: "Durable and stylish jeans for everyday wear." },
