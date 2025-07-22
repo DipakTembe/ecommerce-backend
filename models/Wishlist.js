@@ -5,14 +5,14 @@ const wishlistSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
-    ref: 'User'  // Associating with the User model
+    ref: 'User' // Reference to User model
   },
   wishlistItems: [
     {
       product: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
-        ref: 'Product'  // Associating with the Product model
+        ref: 'Product'
       },
       name: {
         type: String,
@@ -23,12 +23,11 @@ const wishlistSchema = new mongoose.Schema({
         required: false,
         validate: {
           validator: function (v) {
-            // Validate if URL is a valid URL (adjust regex as needed)
-            return /^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/.test(v);
+            return !v || /^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/.test(v);
           },
           message: 'Invalid URL format for image URL.'
         },
-        default: 'http://localhost:5001/images/default-image.jpg' // Default image URL if not provided
+        default: `${process.env.FRONTEND_URL || 'http://localhost:5001'}/images/default-image.jpg`
       },
       price: {
         type: Number,
@@ -40,31 +39,38 @@ const wishlistSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Method to add product to the wishlist
+// Method to add product to wishlist
 wishlistSchema.methods.addToWishlist = async function (productId) {
-  const productExists = this.wishlistItems.find(item => item.product.toString() === productId.toString());
+  const productExists = this.wishlistItems.find(
+    (item) => item.product.toString() === productId.toString()
+  );
 
   if (!productExists) {
-    const product = await mongoose.model('Product').findById(productId);  // Get product details
-    if (product) {
-      this.wishlistItems.push({
-        product: product._id,
-        name: product.name,
-        image: product.image,
-        price: product.price
-      });
-      await this.save();
-    } else {
+    const Product = mongoose.model('Product');
+    const product = await Product.findById(productId);
+    if (!product) {
       throw new Error('Product not found');
     }
+
+    this.wishlistItems.push({
+      product: product._id,
+      name: product.name,
+      imageUrl: product.imageUrl || `${process.env.FRONTEND_URL || 'http://localhost:5001'}/images/default-image.jpg`,
+      price: product.price
+    });
+
+    await this.save();
   }
 
   return this;
 };
 
-// Method to remove product from the wishlist
+// Method to remove product from wishlist
 wishlistSchema.methods.removeFromWishlist = async function (productId) {
-  this.wishlistItems = this.wishlistItems.filter(item => item.product.toString() !== productId.toString());
+  this.wishlistItems = this.wishlistItems.filter(
+    (item) => item.product.toString() !== productId.toString()
+  );
+
   await this.save();
   return this;
 };

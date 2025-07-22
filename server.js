@@ -41,15 +41,14 @@ app.get('/favicon.ico', (req, res) => res.status(204).end()); // No Content
 // Serve static files for images from backend folder
 app.use('/images', express.static(path.join(__dirname, 'images'))); // Serve images from the 'images' folder in backend
 
-// CORS Configuration
 const allowedOrigins = [
-  process.env.FRONTEND_URL,   // Your production frontend URL
+  process.env.FRONTEND_URL,   // Netlify frontend (already set in Render env)
   'https://dipakecommercewebsite.netlify.app',
-  'http://localhost:3000',    // Your local frontend (React app running on port 3000)
-  'http://localhost:5001',    // Backend for image path
-  'http://localhost:5001/images' // Ensure this path is allowed for image access
+  'http://localhost:3000',
+  'http://localhost:5001',
+  'http://localhost:5001/images',
+  'https://ecommerce-backend-1-gnq2.onrender.com',  // Your Render backend URL
 ];
-
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
