@@ -3,49 +3,49 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const path = require('path');
+
+// Utils and Middleware
 const { logInfo, logError } = require('./utils/logger');
+const authMiddleware = require('./middleware/authMiddleware');
+
+// Routes
+const authRoutes = require('./routes/authRoutes');
+const otpRoutes = require('./routes/otpRoutes');
+const testRoutes = require('./routes/testRoutes');
+const productRoutes = require('./routes/productRoutes'); // search is handled here
 const cartRoutes = require('./routes/cartRoutes');
 const wishlistRoutes = require('./routes/wishlistRoutes');
 const orderRoutes = require('./routes/orderRoutes');
-const productRoutes = require('./routes/productRoutes');
-const authRoutes = require('./routes/authRoutes');
-const testRoutes = require('./routes/testRoutes');
-const otpRoutes = require('./routes/otpRoutes');
-const authMiddleware = require('./middleware/authMiddleware');
 
-// Load environment variables
+// Load .env variables
 dotenv.config();
 
-// Validate environment variables
-if (!process.env.MONGO_URI) {
-  console.error('Missing MONGO_URI in .env file');
-  process.exit(1);
-}
-if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-  console.error('Missing email credentials (EMAIL_USER or EMAIL_PASS) in .env file');
-  process.exit(1);
-}
-if (!process.env.JWT_SECRET) {
-  console.error('Missing JWT_SECRET in .env file');
-  process.exit(1);
+// ✅ Validate Required Environment Variables
+const requiredEnv = ['MONGO_URI', 'EMAIL_USER', 'EMAIL_PASS', 'JWT_SECRET'];
+for (const key of requiredEnv) {
+  if (!process.env[key]) {
+    console.error(`Missing ${key} in .env`);
+    process.exit(1);
+  }
 }
 
-// Initialize app
+// ✅ Initialize Express App
 const app = express();
 app.use(express.json());
 
-// Favicon handling
-app.get('/favicon.ico', (req, res) => res.status(204).end());
-
-// Serve static image files
+// ✅ Serve static image files (public images)
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
-// ✅ Updated CORS Configuration
+// ✅ Handle favicon.ico
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
+// ✅ CORS Configuration
 const allowedOrigins = [
   process.env.FRONTEND_URL,
-  'https://dipakecommercewebsite.netlify.app',
   'http://localhost:3000',
+  'https://dipakecommercewebsite.netlify.app'
 ];
+
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -54,63 +54,63 @@ app.use(cors({
       callback(new Error('Not allowed by CORS'));
     }
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
 }));
 
-// Connect to MongoDB
+// ✅ Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => logInfo('Connected to MongoDB'))
-  .catch((err) => {
-    logError('Error connecting to MongoDB: ' + err.message);
+  .then(() => logInfo('✅ Connected to MongoDB'))
+  .catch(err => {
+    logError('❌ MongoDB connection error: ' + err.message);
     process.exit(1);
   });
 
-// Default route
+// ✅ Root route
 app.get('/', (req, res) => {
-  res.json({
-    message: 'Welcome to the e-commerce backend!',
-    status: 'Running',
+  res.status(200).json({
+    message: 'Welcome to the E-commerce Backend API!',
+    status: 'Running'
   });
 });
 
-// Public Routes
+// ✅ Public Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/test', testRoutes);
 app.use('/api/otp', otpRoutes);
+app.use('/api/test', testRoutes);
+app.use('/api/products', productRoutes); // Includes search endpoint
 
-// Protected Routes
+// ✅ Protected Routes (Apply authMiddleware)
 app.use(authMiddleware);
 app.use('/api/cart', cartRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/orders', orderRoutes);
 
-// Catch-All Route
+// ✅ 404 Catch-All
 app.use((req, res, next) => {
   const error = new Error('Route not found');
   error.status = 404;
   next(error);
 });
 
-// Global Error Handler
+// ✅ Global Error Handler
 app.use((err, req, res, next) => {
   logError(`Error: ${err.message}`);
   res.status(err.status || 500).json({
-    message: err.message || 'Internal server error',
-    stack: process.env.NODE_ENV === 'development' ? err.stack : {},
+    message: err.message || 'Internal Server Error',
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
   });
 });
 
-// Start server
+// ✅ Start Server
 const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => logInfo(`Server is running on port ${PORT}`));
+app.listen(PORT, () => logInfo(`🚀 Server running on port ${PORT}`));
 
-// Graceful Shutdown
+// ✅ Graceful Shutdown
 const gracefulShutdown = (signal) => {
   logInfo(`${signal} received. Closing MongoDB connection.`);
   mongoose.connection.close(() => {
-    logInfo('MongoDB connection closed. Exiting application.');
+    logInfo('MongoDB connection closed. Exiting...');
     process.exit(0);
   });
 };
