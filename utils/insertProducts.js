@@ -5,6 +5,7 @@ const Product = require('../models/Product');
 // === Load environment variables ===
 const mongoURI = process.env.MONGO_URI;
 const backendBaseUrl = (process.env.BACKEND_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+// const backendBaseUrl = (process.env.BACKEND_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
 
 if (!mongoURI) {
   console.error('❌ MONGO_URI is not defined in .env');

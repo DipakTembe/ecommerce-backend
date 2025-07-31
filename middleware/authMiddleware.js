@@ -6,6 +6,7 @@ const authMiddleware = async (req, res, next) => {
     // Check if Authorization header exists and starts with 'Bearer '
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      // console.log(req);
       console.error('No Authorization header or invalid format');
       return res.status(401).json({ message: 'Unauthorized: Token is required in Bearer format' });
     }

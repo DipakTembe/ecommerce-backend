@@ -1,6 +1,7 @@
-// server.js
-
+// Load environment variables at the very top
 const dotenv = require('dotenv');
+dotenv.config(); // ✅ IMPORTANT: Must be before using process.env
+
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
@@ -19,14 +20,11 @@ const cartRoutes = require('./routes/cartRoutes');
 const wishlistRoutes = require('./routes/wishlistRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 
-// Load .env variables
-dotenv.config();
-
 // Validate required env vars
-const requiredEnv = ['MONGO_URI', 'EMAIL_USER', 'EMAIL_PASS', 'JWT_SECRET'];
+const requiredEnv = ['MONGO_URI', 'EMAIL_USER', 'EMAIL_PASS', 'JWT_SECRET', 'FRONTEND_URL'];
 for (const key of requiredEnv) {
   if (!process.env[key]) {
-    console.error(`Missing ${key} in .env`);
+    console.error(`❌ Missing ${key} in .env`);
     process.exit(1);
   }
 }
@@ -41,26 +39,31 @@ app.use('/images', express.static(path.join(__dirname, 'images')));
 // Handle favicon.ico requests
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 
-// CORS config
+// 🌐 CORS Configuration
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   'http://localhost:3000',
-  'https://dipakecommercewebsite.netlify.app'
+  'https://dipakecommercewebsite.netlify.app', // Fallback if env var fails
 ];
 
 app.use(cors({
-  origin: function (origin, callback) {
-    console.log('🌐 CORS Request Origin:', origin);
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.warn(`❌ CORS blocked request from origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
+  origin: '*', // Allow all origins
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
 }));
+
+// app.use(cors({
+//   origin: function (origin, callback) {
+//     console.log('🌐 CORS Request Origin:', origin);
+//     if (!origin || allowedOrigins.includes(origin)) {
+//       callback(null, true);
+//     } else {
+//       console.warn(`❌ CORS blocked request from origin: ${origin}`);
+//       callback(new Error('Not allowed by CORS'));
+//     }
+//   },
+//   credentials: true,
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+// }));
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -70,14 +73,14 @@ app.get('/', (req, res) => {
   });
 });
 
-// Public routes (no auth required)
+// Public routes
 app.use('/api/auth', authRoutes);
 app.use('/api/otp', otpRoutes);
 app.use('/api/test', testRoutes);
-app.use('/api/products', productRoutes); // includes /search and public product routes
+app.use('/api/products', productRoutes); // includes /search
 
 // Protected routes (require auth)
-app.use(authMiddleware); // <-- apply authMiddleware only from here on
+app.use(authMiddleware);
 app.use('/api/cart', cartRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/orders', orderRoutes);
@@ -100,7 +103,21 @@ app.use((err, req, res, next) => {
 
 // Start server
 const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => logInfo(`🚀 Server running on port ${PORT}`));
+
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+  .then(() => {
+    logInfo('✅ MongoDB connected.');
+    app.listen(PORT, () => logInfo(`🚀 Server running on port ${PORT}`));
+  })
+  .catch((err) => {
+    logError('❌ MongoDB connection failed:', err.message);
+    process.exit(1);
+  });
+
+// app.listen(PORT, () => logInfo(`🚀 Server running on port ${PORT}`));
 
 // Graceful shutdown
 const gracefulShutdown = (signal) => {
