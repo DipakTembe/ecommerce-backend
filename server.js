@@ -43,16 +43,18 @@ app.get('/favicon.ico', (req, res) => res.status(204).end());
 
 // CORS config
 const allowedOrigins = [
-  process.env.FRONTEND_URL,                 // your frontend URL from env
-  'http://localhost:3000',                  // local React dev
-  'https://dipakecommercewebsite.netlify.app' // example Netlify deployed URL
+  process.env.FRONTEND_URL,
+  'http://localhost:3000',
+  'https://dipakecommercewebsite.netlify.app'
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
+    console.log('🌐 CORS Request Origin:', origin);
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.warn(`❌ CORS blocked request from origin: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
