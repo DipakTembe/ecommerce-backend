@@ -67,6 +67,13 @@ const productData = [
   { image: "/images/kitchen-set2.jpg", brand: "Wonderchef", type: "Cookware Set", price: 6999, stock: 13, category: "Kitchenware", rating: 4.3, buyers: 4100, gender: "Home", description: "Premium cookware set with non-stick features." },
   { image: "/images/kitchen-set3.webp", brand: "Cello", type: "Dinner Set", price: 6999, stock: 43, category: "Kitchenware", rating: 4.6, buyers: 3500, gender: "Home", description: "Elegant dinner set for formal dining." },
   { image: "/images/kitchen-set4.webp", brand: "Borosil", type: "Glassware Set", price: 6999, stock: 33, category: "Kitchenware", rating: 4.1, buyers: 2700, gender: "Home", description: "Stylish and durable glassware set." },
+  { image: "/images/summer-collection.jpg", brand: "YourBrand", type: "Summer Collection", price: 2999, stock: 20, category: "Fashion", rating: 4.3, buyers: 1500, gender: "Kids", description: "Trendy and comfortable summer wear collection." },
+  { image: "/images/shoe.jpg", brand: "Nike", type: "Running Shoes", price: 2499, stock: 50, category: "Footwear", rating: 4.5, buyers: 2200, gender: "Mens", description: "Comfortable and durable running shoes." },
+  { image: "/images/jacket.jpg", brand: "Zara", type: "Winter Jacket", price: 3499, stock: 40, category: "Winterwear", rating: 4.3, buyers: 1800, gender: "Mens", description: "Warm and stylish winter jacket." },
+  { image: "/images/black-sofa.jpg", brand: "UrbanLuxe", type: "Sofa", price: 25999, stock: 15, category: "Furniture", rating: 4.4, buyers: 950, gender: "Home", description: "Elegant and comfortable black sofa." },
+  { image: "/images/black-shoe.jpg", brand: "StrideX", type: "Running Shoes", price: 1999, stock: 60, category: "Footwear", rating: 4.2, buyers: 2100, gender: "Mens", description: "Stylish and lightweight black running shoes." },
+  { image: "/images/sports-watch.jpg", brand: "Fastrack", type: "Sports Watch", price: 3499, stock: "In Stock", category: "Accessories", rating: 4.3, buyers: 3200, gender: "Mens", description: "Durable and stylish sports watch with water resistance and fitness tracking." }
+
 ];
 
 
