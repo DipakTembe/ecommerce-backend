@@ -2,11 +2,12 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 const Product = require('../models/Product');
 
+// === Load environment variables ===
 const mongoURI = process.env.MONGO_URI;
 const backendBaseUrl = (process.env.BACKEND_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
 
 if (!mongoURI) {
-  console.error('❌ MongoDB URI is not defined in .env');
+  console.error('❌ MONGO_URI is not defined in .env');
   process.exit(1);
 }
 
@@ -69,19 +70,21 @@ const productData = [
 ];
 
 
-// Normalize stock value if provided as string
 function normalizeStock(stock) {
   if (typeof stock === 'string') {
     switch (stock.toLowerCase()) {
-      case 'in stock': return 1;
-      case 'out of stock': return 0;
-      default: return 0;
+      case 'in stock':
+        return 1;
+      case 'out of stock':
+        return 0;
+      default:
+        return 0;
     }
   }
   return Number(stock);
 }
 
-// Validate URL (simple check)
+// === Utility: Validate a URL ===
 function isValidURL(url) {
   try {
     new URL(url);
@@ -91,26 +94,30 @@ function isValidURL(url) {
   }
 }
 
+// === Connect to MongoDB and seed products ===
 mongoose.connect(mongoURI)
   .then(async () => {
     console.log('✅ MongoDB connected.');
 
+    // Delete existing products
     const deleted = await Product.deleteMany({});
     console.log(`🗑️ ${deleted.deletedCount} existing products removed.`);
 
+    // Prepare product documents with full image URLs
     const updatedProducts = productData.map(item => {
       const imageUrl = `${backendBaseUrl}${item.image}`;
       if (!isValidURL(imageUrl)) {
         console.warn(`⚠️ Skipping invalid image URL for product: ${item.type} => ${imageUrl}`);
         return null;
       }
+
       return {
         ...item,
         name: item.type,
         stock: normalizeStock(item.stock),
         imageUrl
       };
-    }).filter(Boolean); // Remove any invalid ones
+    }).filter(Boolean);
 
     if (updatedProducts.length === 0) {
       console.error('❌ No valid products to insert.');
@@ -118,6 +125,7 @@ mongoose.connect(mongoURI)
       return;
     }
 
+    // Insert into DB
     try {
       const inserted = await Product.insertMany(updatedProducts);
       console.log(`✅ ${inserted.length} products inserted successfully.`);
